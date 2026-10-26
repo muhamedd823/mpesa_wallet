@@ -29,8 +29,6 @@ public class TransferService {
             throw WalletException.unprocessable("SAME_WALLET", "from_wallet and to_wallet must differ");
         }
 
-        // Lock both rows in a consistent order (alphabetical by wallet_id) to prevent
-        // deadlocks when two concurrent transfers go in opposite directions (S1.3).
         String firstId  = req.from_wallet().compareTo(req.to_wallet()) < 0 ? req.from_wallet() : req.to_wallet();
         String secondId = firstId.equals(req.from_wallet()) ? req.to_wallet() : req.from_wallet();
 
@@ -53,8 +51,6 @@ public class TransferService {
                     from.getWalletId() + " available " + from.getAvailable() + ", requested " + req.amount());
         }
 
-        // Atomic debit + credit — no observer ever sees one without the other
-        // because both happen inside this single transaction.
         Instant now = Instant.now();
         from.setBalance(from.getBalance() - req.amount());
         from.setUpdatedAt(now);

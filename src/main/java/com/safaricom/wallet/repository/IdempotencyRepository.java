@@ -13,7 +13,6 @@ public interface IdempotencyRepository extends JpaRepository<IdempotencyRecord, 
 
     Optional<IdempotencyRecord> findByIdemKey(String idemKey);
 
-    // Purges keys older than 24 hours — called by a lightweight scheduled task
     @Modifying
     @Query("DELETE FROM IdempotencyRecord r WHERE r.expiresAt < :now")
     void deleteExpired(@Param("now") Instant now);

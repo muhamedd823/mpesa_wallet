@@ -1,11 +1,14 @@
 package com.safaricom.wallet.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safaricom.wallet.dto.ReversalRequest;
+import com.safaricom.wallet.dto.ReversalResponse;
 import com.safaricom.wallet.dto.TransferRequest;
 import com.safaricom.wallet.dto.TransferResponse;
 import com.safaricom.wallet.entity.IdempotencyRecord;
 import com.safaricom.wallet.exception.WalletException;
 import com.safaricom.wallet.service.IdempotencyService;
+import com.safaricom.wallet.service.ReversalService;
 import com.safaricom.wallet.service.TransferService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,7 @@ import java.util.HexFormat;
 public class TransferController {
 
     private final TransferService transferService;
+    private final ReversalService reversalService;
     private final IdempotencyService idempotencyService;
     private final ObjectMapper mapper;
 
@@ -33,46 +37,36 @@ public class TransferController {
 
         if (idempotencyKey == null || idempotencyKey.isBlank() || idempotencyKey.length() > 64) {
             throw new WalletException("VALIDATION_FAILED",
-                    "Idempotency-Key header is required and must be 1–64 characters",
+                    "Idempotency-Key header is required and must be 1-64 characters",
                     HttpStatus.BAD_REQUEST);
         }
 
         String bodyJson = toJson(req);
         String hash = sha256(bodyJson);
 
-        // Atomically insert or fetch the existing record for this key
         IdempotencyRecord record = idempotencyService.getOrCreate(idempotencyKey, hash);
 
-        // Body mismatch → 409
         if (!record.getRequestHash().equals(hash)) {
             throw WalletException.conflict("IDEMPOTENCY_CONFLICT",
                     "Idempotency key reused with a different request body");
         }
 
-        // Already finished → return the exact original response, no second effect
         if (record.isCompleted()) {
             TransferResponse cached = fromJson(record.getResponseBody(), TransferResponse.class);
             return ResponseEntity.status(record.getResponseStatus()).body(cached);
         }
 
-        // Still in progress on another thread/instance → 409
-        // (the record exists but completed=false means someone else is processing it)
-        if (!record.isCompleted()) {
-            // Check if this is a brand-new record we just inserted (our own thread)
-            // vs one inserted by another thread. We detect this by whether the record
-            // was just created (no response yet) and we are not the creator.
-            // Simple approach: try to process; if we inserted the row we proceed,
-            // otherwise we already returned above. The getOrCreate race is handled
-            // by the unique constraint — only one thread gets the fresh insert.
-        }
-
-        // We own this record (we inserted it) — process the transfer
         TransferResponse response = transferService.transfer(req, idempotencyKey);
-
-        // Persist the response so any future duplicate call gets it back
         idempotencyService.complete(idempotencyKey, HttpStatus.CREATED.value(), response);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/{id}/reversal")
+    public ResponseEntity<ReversalResponse> reverse(
+            @PathVariable String id,
+            @Valid @RequestBody ReversalRequest req) {
+        return ResponseEntity.ok(reversalService.reverse(id, req));
     }
 
     private String toJson(Object obj) {

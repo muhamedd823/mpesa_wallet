@@ -22,7 +22,6 @@ public class Transfer {
     @Column(name = "to_wallet_id", nullable = false, length = 20)
     private String toWalletId;
 
-    // Santim — integer
     @Column(nullable = false)
     private long amount;
 
@@ -33,11 +32,9 @@ public class Transfer {
     @Column(nullable = false, length = 15)
     private TransferStatus status;
 
-    // Points to the original transfer this row reverses (null if not a reversal)
     @Column(name = "reversal_of", length = 30)
     private String reversalOf;
 
-    // Idempotency key that created this transfer
     @Column(name = "idempotency_key", length = 64)
     private String idempotencyKey;
 

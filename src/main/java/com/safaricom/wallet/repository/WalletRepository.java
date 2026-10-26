@@ -11,8 +11,6 @@ import java.util.Optional;
 
 public interface WalletRepository extends JpaRepository<Wallet, String> {
 
-    // Pessimistic write lock — used on the debit side of transfers and payouts
-    // to serialize concurrent writes to the same wallet row across both instances.
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT w FROM Wallet w WHERE w.walletId = :id")
     Optional<Wallet> findByIdForUpdate(@Param("id") String id);

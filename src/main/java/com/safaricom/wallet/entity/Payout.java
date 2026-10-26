@@ -22,7 +22,6 @@ public class Payout {
     @Column(name = "bank_account", nullable = false, length = 50)
     private String bankAccount;
 
-    // Santim — integer
     @Column(nullable = false)
     private long amount;
 
@@ -30,11 +29,9 @@ public class Payout {
     @Column(nullable = false, length = 15)
     private PayoutStatus status;
 
-    // bank_ref returned by the bank on ACCEPTED
     @Column(name = "bank_ref", length = 50)
     private String bankRef;
 
-    // Set true when a callback contradicts a recorded final status
     @Column(nullable = false)
     private boolean conflict;
 
@@ -48,11 +45,6 @@ public class Payout {
     private Instant updatedAt;
 
     public enum PayoutStatus {
-        // Public statuses
-        PENDING, SUCCEEDED, FAILED,
-        // Internal: bank call sent, awaiting callback or reconciliation
-        SUBMITTED,
-        // Internal: bank timed out — outcome unknown, reconciler will resolve
-        UNKNOWN
+        PENDING, SUCCEEDED, FAILED, SUBMITTED, UNKNOWN
     }
 }

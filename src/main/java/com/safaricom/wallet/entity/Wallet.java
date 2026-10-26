@@ -20,7 +20,6 @@ public class Wallet {
     @Column(nullable = false, length = 10)
     private WalletStatus status;
 
-    // All amounts in santim (integers only — no float/double)
     @Column(nullable = false)
     private long balance;
 
@@ -33,7 +32,6 @@ public class Wallet {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    // Optimistic lock — prevents lost updates across instances without SELECT FOR UPDATE on every read
     @Version
     private long version;
 

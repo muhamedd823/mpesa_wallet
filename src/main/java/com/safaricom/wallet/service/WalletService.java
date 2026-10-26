@@ -21,7 +21,7 @@ public class WalletService {
                         w.getStatus().name(),
                         w.getBalance(),
                         w.getReserved(),
-                        w.getAvailable()   // always balance − reserved, never negative
+                        w.getAvailable()
                 ))
                 .orElseThrow(() -> WalletException.notFound("WALLET_NOT_FOUND", walletId + " not found"));
     }
