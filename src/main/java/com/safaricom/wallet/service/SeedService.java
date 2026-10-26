@@ -25,8 +25,8 @@ public class SeedService {
     @Transactional
     public void reset() {
         idempotencyRepo.deleteAll();
-        payoutRepo.deleteAll();
         transferRepo.deleteAll();
+        payoutRepo.deleteAll();
         walletRepo.deleteAll();
 
         List<Wallet> wallets = new ArrayList<>();
