@@ -26,29 +26,6 @@ public class TransferController {
     private final IdempotencyService idempotencyService;
     private final ObjectMapper mapper;
 
-    /**
-     * POST /mpesa/v1/p2p/transfers
-     *
-     * Sample request:
-     *   POST http://localhost:8081/mpesa/v1/p2p/transfers
-     *   Idempotency-Key: my-unique-key-001
-     *   Content-Type: application/json
-     *
-     *   {
-     *     "from_wallet": "W001",
-     *     "to_wallet":   "W002",
-     *     "amount":      10000,
-     *     "reference":   "rent-october"
-     *   }
-     *
-     * Sample response (201 Created):
-     *   {
-     *     "transfer_id":          "T-4a1b2c3d4e",
-     *     "status":               "COMPLETED",
-     *     "from_available_after": 990000,
-     *     "created_at":           "2026-11-02T09:14:03.120Z"
-     *   }
-     */
     @PostMapping
     public ResponseEntity<TransferResponse> create(
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
